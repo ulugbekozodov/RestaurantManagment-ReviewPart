@@ -1,5 +1,9 @@
+import json
+
+
 class ReviewList:
     def __init__(self):
+        self.file_name = "responses.json"
         self.reviews = [
             {
                 "author": "Саодат М",
@@ -66,8 +70,34 @@ class ReviewList:
                 "response": "",
             },
         ]
+        self.load_responses()
+
+    def load_responses(self):
+        try:
+            with open(self.file_name, "r", encoding="utf-8") as file:
+                data = json.load(file)
+                for saved in data:
+                    for item in self.reviews:
+                        if (
+                            item["author"] == saved["author"]
+                            and item["date"] == saved["date"]
+                            and item["comment"] == saved["comment"]
+                        ):
+                            item["response"] = saved["response"]
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass
+
+    def save_responses(self):
+        responses = []
+        for item in self.reviews:
+            if item["response"] != "":
+                responses.append(item)
+
+        with open(self.file_name, "w", encoding="utf-8") as file:
+            json.dump(responses, file, ensure_ascii=False, indent=4)
 
     def show_reviews(self):
+        self.load_responses()
         if not self.reviews:
             print("No reviews yet.")
             print()
@@ -85,7 +115,6 @@ class ReviewList:
 
             print(f"    Rating: {item['rating']} | Date: {item['date']}")
 
-            
             lines = item["comment"].split("\n")
             for line in lines:
                 words = line.split(" ")
@@ -118,22 +147,70 @@ class ReviewList:
 
         if 1 <= review_number <= len(self.reviews):
             reply_text = input("Enter your response: ")
+            self.load_responses()
             self.reviews[review_number - 1]["response"] = reply_text
+            self.save_responses()
             print("Response added successfully!")
             print()
         else:
             print("Invalid review number!")
             print()
 
+    def show_responses(self):
+        self.load_responses()
+        has_response = False
+        for item in self.reviews:
+            if item["response"] != "":
+                has_response = True
+                break
+
+        if not has_response:
+            print("No responses yet.")
+            print()
+            return
+
+        print("==================================================")
+        print("           CUSTOMER RESPONSES (Khanate)")
+        print("==================================================")
+
+        for i, item in enumerate(self.reviews, start=1):
+            if item["response"] != "":
+                if item["author"] != "":
+                    print(f"{i}. {item['author']}")
+                else:
+                    print(f"{i}.")
+
+                print(f"    Rating: {item['rating']} | Date: {item['date']}")
+                print("    Response:")
+
+                lines = item["response"].split("\n")
+                for line in lines:
+                    words = line.split(" ")
+                    current_line = ""
+                    for word in words:
+                        if current_line == "":
+                            current_line = word
+                        elif len(current_line) + len(word) + 1 <= 46:
+                            current_line = current_line + " " + word
+                        else:
+                            print("   ", current_line)
+                            current_line = word
+                    if current_line != "":
+                        print("   ", current_line)
+
+                print("--------------------------------------------------")
+        print()
+
     def choice(self):
         while True:
             print("1. Show Reviews")
             print("2. Respond to Review")
+            print("3. Show Responses")
             print("0. Exit")
             try:
-                c = int(input("Choose option 0-2: "))
+                c = int(input("Choose option 0-3: "))
             except ValueError:
-                print("Please enter a number (0-2)")
+                print("Please enter a number (0-3)")
                 print()
                 continue
             print()
@@ -142,10 +219,12 @@ class ReviewList:
                 self.show_reviews()
             elif c == 2:
                 self.respond_menu()
+            elif c == 3:
+                self.show_responses()
             elif c == 0:
                 break
             else:
-                print("Only 3 options (0-2)")
+                print("Only 4 options (0-3)")
                 print()
 
 
