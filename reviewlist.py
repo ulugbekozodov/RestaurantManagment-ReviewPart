@@ -1,9 +1,5 @@
-import json
-
-
 class ReviewList:
     def __init__(self):
-        self.file_name = "responses.json"
         self.reviews = [
             {
                 "author": "Саодат М",
@@ -70,34 +66,8 @@ class ReviewList:
                 "response": "",
             },
         ]
-        self.load_responses()
-
-    def load_responses(self):
-        try:
-            with open(self.file_name, "r", encoding="utf-8") as file:
-                data = json.load(file)
-                for saved in data:
-                    for item in self.reviews:
-                        if (
-                            item["author"] == saved["author"]
-                            and item["date"] == saved["date"]
-                            and item["comment"] == saved["comment"]
-                        ):
-                            item["response"] = saved["response"]
-        except (FileNotFoundError, json.JSONDecodeError):
-            pass
-
-    def save_responses(self):
-        responses = []
-        for item in self.reviews:
-            if item["response"] != "":
-                responses.append(item)
-
-        with open(self.file_name, "w", encoding="utf-8") as file:
-            json.dump(responses, file, ensure_ascii=False, indent=4)
 
     def show_reviews(self):
-        self.load_responses()
         if not self.reviews:
             print("No reviews yet.")
             print()
@@ -147,9 +117,7 @@ class ReviewList:
 
         if 1 <= review_number <= len(self.reviews):
             reply_text = input("Enter your response: ")
-            self.load_responses()
             self.reviews[review_number - 1]["response"] = reply_text
-            self.save_responses()
             print("Response added successfully!")
             print()
         else:
@@ -157,7 +125,6 @@ class ReviewList:
             print()
 
     def show_responses(self):
-        self.load_responses()
         has_response = False
         for item in self.reviews:
             if item["response"] != "":
